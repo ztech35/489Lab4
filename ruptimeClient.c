@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdlib.h>
 #include<string.h>
 #include<sys/socket.h>
@@ -53,10 +55,12 @@ int main(int argc , char *argv[])
 {
   int sock;
   int read_size;
-  struct sockaddr_in server;
   char server_reply[512] = {0};
-  char localHost_IP[200] = argv[1];//127.0.0.1
-  char server_IP[200] = argv[2];
+  char localHost_IP[200];
+  char server_IP[200];
+
+  strcpy(localHost_IP, argv[1]);
+  strcpy(server_IP, argv[2]);
  
         //Create socket
 	sock = SocketCreate();
@@ -69,7 +73,7 @@ int main(int argc , char *argv[])
 	printf("Socket is created\n");
  
 	//Connect to remote server
-	if (SocketConnect(sock) < 0)
+	if (SocketConnect(sock, localHost_IP) < 0)
 	{
 		perror("connect failed.\n");
 		return 1;
@@ -80,6 +84,7 @@ int main(int argc , char *argv[])
  
 	//Received the data from the server
 	read_size = SocketReceive(sock , server_reply , 200);
+        if(read_size);
 	
 	printf("%s: %s\n", server_IP, server_reply);
  
