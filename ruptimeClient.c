@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdlib.h>
 #include<string.h>
 #include<sys/socket.h>
@@ -11,23 +13,23 @@ short SocketCreate(void)
  
         short sock;
         printf("Create the socket\n");
-        sock = socket(AF_INET, SOCK_STREAM, 0);
+        sock = socket(PF_INET, SOCK_STREAM, 0);
         return sock;
 }
  
 //try to connect with server
-int SocketConnect(int sock, char localHost_IP[])
+int SocketConnect(int sock, char server_IP[])
 {
  
         int iRetval=-1;
-        int ServerPort = 45716;//id_num as indicated in lab description
-        struct sockaddr_in remote={0};
+        int ServerPort = 3212;//id_num as indicated in lab description
+        struct sockaddr_in remote;
  
-        remote.sin_addr.s_addr = inet_addr(localHost_IP); 
-        remote.sin_family = AF_INET;
+        remote.sin_addr.s_addr = inet_addr(server_IP); 
+        remote.sin_family = PF_INET;
         remote.sin_port = htons(ServerPort);
  
-        iRetval = connect(sock , (struct sockaddr *)&remote , sizeof(struct sockaddr_in));
+        iRetval = connect(sock , (struct sockaddr *)&remote , sizeof(remote));
  
  
         return iRetval;
@@ -42,8 +44,6 @@ int SocketReceive(int hSocket,char* Rsp,short RvcSize)
  
 	shortRetval = recv(hSocket, Rsp , RvcSize , 0);
  
-	printf("Response %s\n",Rsp);
- 
 	return shortRetval;
  }
  
@@ -53,10 +53,12 @@ int main(int argc , char *argv[])
 {
   int sock;
   int read_size;
-  struct sockaddr_in server;
   char server_reply[512] = {0};
-  char localHost_IP[200] = argv[1];//127.0.0.1
-  char server_IP[200] = argv[2];
+  char localHost_IP[200];
+  char server_IP[200];
+
+  strcpy(localHost_IP, argv[1]);
+  strcpy(server_IP, argv[2]);
  
         //Create socket
 	sock = SocketCreate();
@@ -69,9 +71,9 @@ int main(int argc , char *argv[])
 	printf("Socket is created\n");
  
 	//Connect to remote server
-	if (SocketConnect(sock) < 0)
+	if (SocketConnect(sock, server_IP) < 0)
 	{
-		perror("connect failed.\n");
+		perror("connect failed");
 		return 1;
 	}
  
@@ -79,7 +81,8 @@ int main(int argc , char *argv[])
 	
  
 	//Received the data from the server
-	read_size = SocketReceive(sock , server_reply , 200);
+	read_size = SocketReceive(sock , server_reply , 512);
+        printf("read: %d\n", read_size);
 	
 	printf("%s: %s\n", server_IP, server_reply);
  
