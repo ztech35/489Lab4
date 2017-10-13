@@ -25,7 +25,7 @@ int SocketConnect(int sock, char server_IP[])
         int ServerPort = 45716;//id_num as indicated in lab description
         struct sockaddr_in remote;
  
-        remote.sin_addr.s_addr = inet_addr(localHost_IP); 
+        remote.sin_addr.s_addr = inet_addr(server_IP); 
         remote.sin_family = PF_INET;
         remote.sin_port = htons(ServerPort);
  
