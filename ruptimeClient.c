@@ -44,8 +44,6 @@ int SocketReceive(int hSocket,char* Rsp,short RvcSize)
  
 	shortRetval = recv(hSocket, Rsp , RvcSize , 0);
  
-	printf("Response %s\n",Rsp);
- 
 	return shortRetval;
  }
  
@@ -75,7 +73,7 @@ int main(int argc , char *argv[])
 	//Connect to remote server
 	if (SocketConnect(sock, localHost_IP) < 0)
 	{
-		perror("connect failed.\n");
+		perror("connect failed");
 		return 1;
 	}
  
