@@ -81,8 +81,8 @@ int main(int argc , char *argv[])
 	
  
 	//Received the data from the server
-	read_size = SocketReceive(sock , server_reply , 200);
-        if(read_size);
+	read_size = SocketReceive(sock , server_reply , 512);
+        printf("read: %d\n", read_size);
 	
 	printf("%s: %s\n", server_IP, server_reply);
  
