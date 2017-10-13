@@ -13,7 +13,7 @@ short SocketCreate(void)
  
         short sock;
         printf("Create the socket\n");
-        sock = socket(PF_INET, SOCK_STREAM, 0)
+        sock = socket(PF_INET, SOCK_STREAM, 0);
         return sock;
 }
  
