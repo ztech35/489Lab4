@@ -13,23 +13,23 @@ short SocketCreate(void)
  
         short sock;
         printf("Create the socket\n");
-        sock = socket(AF_INET, SOCK_STREAM, 0);
+        sock = socket(PF_INET, SOCK_STREAM, 0)
         return sock;
 }
  
 //try to connect with server
-int SocketConnect(int sock, char localHost_IP[])
+int SocketConnect(int sock, char server_IP[])
 {
  
         int iRetval=-1;
         int ServerPort = 45716;//id_num as indicated in lab description
-        struct sockaddr_in remote={0};
+        struct sockaddr_in remote;
  
         remote.sin_addr.s_addr = inet_addr(localHost_IP); 
-        remote.sin_family = AF_INET;
+        remote.sin_family = PF_INET;
         remote.sin_port = htons(ServerPort);
  
-        iRetval = connect(sock , (struct sockaddr *)&remote , sizeof(struct sockaddr_in));
+        iRetval = connect(sock , (struct sockaddr *)&remote , sizeof(remote));
  
  
         return iRetval;
@@ -71,7 +71,7 @@ int main(int argc , char *argv[])
 	printf("Socket is created\n");
  
 	//Connect to remote server
-	if (SocketConnect(sock, localHost_IP) < 0)
+	if (SocketConnect(sock, server_IP) < 0)
 	{
 		perror("connect failed");
 		return 1;
