@@ -22,7 +22,7 @@ int SocketConnect(int sock, char server_IP[])
 {
  
         int iRetval=-1;
-        int ServerPort = 45716;//id_num as indicated in lab description
+        int ServerPort = 3212;//id_num as indicated in lab description
         struct sockaddr_in remote;
  
         remote.sin_addr.s_addr = inet_addr(server_IP); 
