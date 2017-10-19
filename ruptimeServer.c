@@ -51,7 +51,7 @@ void get_uptime(char data[])
     pipe = popen(command, "r"); 
 
     if(pipe == NULL){
-        fprintf(stderr, "Pipe command creation failure\n");
+        perror("Pipe command creation failure");
         exit(EXIT_FAILURE);
     }
 
@@ -60,7 +60,7 @@ void get_uptime(char data[])
 
     // Closing the pipe
     if(pclose(pipe) < 0){
-        fprintf(stderr, "Pipe command closing failure\n");
+        perror("Pipe command closing failure");
         exit(EXIT_FAILURE);
     }
 }
