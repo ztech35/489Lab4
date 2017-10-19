@@ -1,124 +1,178 @@
-#include<stdio.h>
-#include<string.h>    
-#include<sys/socket.h>
-#include<arpa/inet.h> 
-#include<unistd.h>    
- 
-//create a Socket for server communication
-short SocketCreate(void)
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>    
+#include <sys/socket.h>
+#include <arpa/inet.h> 
+#include <unistd.h>    
+
+#define DEBUG 1
+
+#define COMMAND_SIZE 30
+#define MAX_LENGTH 512
+
+/*
+ * Binding the created serve socket
+ * parameters:
+ * sock: the server socket
+ * return value:
+ * 0 if success, -1 if failure
+ */
+int bind_created_socket(int sock)
 {
-  short sock;
-  
-  sock = socket(PF_INET, SOCK_STREAM, 0);
-  return sock;
-}
- 
- 
-int BindCreatedSocket(int sock)
-{
- 
-  int iRetval=-1;//error val
-  int ClientPort = 3212;
-  struct sockaddr_in  remote;
- 
-  remote.sin_family = PF_INET; /* Internet address family */
-  remote.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
-  remote.sin_port = htons(ClientPort); /* Local port */
-  iRetval = bind(sock,(struct sockaddr *)&remote,sizeof(remote));
-  
-  return iRetval;
+
+    int client_port = 3212;
+    struct sockaddr_in  remote;
+
+    // Setup connection
+    remote.sin_family = PF_INET;
+    remote.sin_addr.s_addr = htonl(INADDR_ANY);
+    remote.sin_port = htons(client_port);
+
+    // Binding
+    return bind(sock, (struct sockaddr *)&remote, sizeof(remote));
 }
 
-//ruptime implementation via calling ruptime through command line
-void get_uptime(char data[512])
+/*
+ * Getting uptime from the UNIX uptime command
+ * parameters:
+ * data: the data string containing the command output
+ * return value:
+ * none
+ */
+void get_uptime(char data[])
 {
-    FILE *pf;
-    char command[20];
+    FILE *pipe = NULL;
+    char command[COMMAND_SIZE];
 
-    // Execute a process listing
+    // Creating the command
     sprintf(command, "uptime"); 
 
-    // Setup our pipe for reading and execute our command.
-    pf = popen(command,"r"); 
+    // Setup the pipe for reading and execute the created command
+    pipe = popen(command, "r"); 
 
-    // Error handling
+    if(pipe == NULL){
+        fprintf(stderr, "Pipe command creation failure\n");
+        exit(EXIT_FAILURE);
+    }
 
-    // Get the data from the process execution
-    fgets(data, 512 , pf);
+    // Geting the data from the command
+    fgets(data, MAX_LENGTH, pipe);
 
-    // the data is now in 'data'
-
-    if (pclose(pf) != 0)
-        fprintf(stderr," Error: Failed to close command stream \n");
-
-    return;
+    // Closing the pipe
+    if(pclose(pipe) < 0){
+        fprintf(stderr, "Pipe command closing failure\n");
+        exit(EXIT_FAILURE);
+    }
 }
-    // Error handling
 
- 
+/*
+ * Main function
+ */
 int main(int argc , char *argv[])
 {
-  int socket_desc; 
-  int sock;
-  int clientLen;
-  int read_size;
-  struct sockaddr_in server; 
-  struct sockaddr_in client;
-  char data[512] = {0};
- 
-	//Create socket
-	socket_desc = SocketCreate();
-	if (socket_desc == -1)
-	{
-	 printf("Could not create socket");
-	 return 1;
-	}
-	printf("socket created\n");
- 
+    int sersock;
+    int consock;
+    char data[MAX_LENGTH] = {0};
+    struct sockaddr_in client;
+    socklen_t client_len;
+
+    // Creating socket
+    if((sersock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        perror("Socket creation failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+    fprintf(stdout, "DEBUG: Sucessfully created the socket\n");
+#endif
   
-	//Bind
-	if( BindCreatedSocket(socket_desc) < 0)
-	{
-	 //print the error message
-	 perror("bind failed.");
-	 return 1;
-	}
-	printf("bind sucessful\n");
+    // Binding
+    if(bind_created_socket(sersock) < 0)
+    {
+        perror("Socket binding failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+    fprintf(stdout, "DEBUG: Sucessfully bound the socket\n");
+#endif
  
-	//Listen
-	listen(socket_desc , 10);
- 
-	//Accept and incoming connection
- 	while(1)
-	  {
+    // Listening
+    if(listen(sersock, 10) < 0)
+    {
+        perror("Socket listening failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+    fprintf(stdout, "DEBUG: Sucessfully listening for connections\n");
+#endif
+
+    // Infinite loop
+    while(1)
+    {
 	    
-	    printf("Waiting for incoming connections...\n");
-	    clientLen = sizeof(client);
+#if DEBUG
+        fprintf(stdout, "DEBUG: Listening for connections...\n");
+#endif
+        
+        client_len = sizeof(client);
  
-	    //accept connection from an incoming client
-	    sock = accept(socket_desc, (struct sockaddr *)&client, &clientLen);
+        // Accepting connections from an incoming client
+        if((consock = accept(sersock, (struct sockaddr *)&client, &client_len)) < 0)
+        {
+            perror("Accepting connection failure");
+            return EXIT_FAILURE;
+        }
 
-	    printf("Test\n");
-	    if (sock < 0)
-	      {
-		perror("accept failed");
-		return 1;
-	      }
-	    printf("Connection accepted\n");
- 
+#if DEBUG
+        fprintf(stdout, "DEBUG: Successfully accepted connection\n");
+#endif
 	  
-	    //server calling ruptime
-	    get_uptime(data);
+        // Server calling uptime
+        get_uptime(data);
 
-	    // Send some data
-	    if( send(sock, data, strlen(data) , 0) < 0)
-	      {
-		printf("Send failed");
-		return 1;
-	      }
- 
-	    close(sock);
-	    sleep(1);
-	  }
-	return 0;
+#if DEBUG
+        fprintf(stdout, "DEBUG: Successfully run uptime command\n");
+#endif
+
+        // Send data to the listening client
+        if(send(consock, data, strlen(data), 0) < 0)
+        {
+            perror("Sending data to client failure");
+            return EXIT_FAILURE;
+        }
+
+#if DEBUG
+        fprintf(stdout, "DEBUG: Successfully sent data to the client\n");
+#endif
+
+        // Closing the connection
+        if(close(consock) < 0)
+        {
+            perror("Closing connection socket failure");
+            return EXIT_FAILURE;
+        }
+
+#if DEBUG
+        fprintf(stdout, "DEBUG: Successfully closed the connection socket\n");
+#endif
+
+        // Sleep for 1 second
+        sleep(1);
+    }
+
+    // Closing the server socket
+    if(close(sersock) < 0)
+    {
+        perror("Closing server socket failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+        fprintf(stdout, "DEBUG: Successfully closed the server socket\n");
+#endif
+
+    return EXIT_SUCCESS;
 }
