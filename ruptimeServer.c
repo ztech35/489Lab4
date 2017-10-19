@@ -158,9 +158,6 @@ int main(int argc , char *argv[])
 #if DEBUG
         fprintf(stdout, "DEBUG: Successfully closed the connection socket\n");
 #endif
-
-        // Sleep for 1 second
-        sleep(1);
     }
 
     // Closing the server socket
