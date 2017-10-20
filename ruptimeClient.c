@@ -111,6 +111,63 @@ int main(int argc, char *argv[])
 
 #if DEBUG
     fprintf(stdout, "DEBUG: Sucessfully closed the socket\n");
+#endif    
+ // Creating the local socket
+    if((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        perror("Socket creation failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+    fprintf(stdout, "DEBUG: Sucessfully created the socket\n");
+#endif
+ 
+    // Connection to remote server
+    if(socket_connect(sock,local_host_IP) < 0)
+    {
+        perror("Remote connection failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+    fprintf(stdout, "DEBUG: Sucessfully conected to the server\n");
+#endif
+    
+    // Receiving the data from the server
+    if(recv(sock, server_reply, MAX_LENGTH , 0) < 0)
+    {
+        perror("Receiving data failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+    fprintf(stdout, "DEBUG: Sucessfully received data from remote server\n");
+#endif
+
+    // Printing data
+    fprintf(stdout, "%s:%s", local_host__IP, server_reply);
+
+    // Shutdown the connection
+    if(shutdown(sock, SHUT_RDWR) < 0)
+    {
+        perror("Shutdown connection failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+    fprintf(stdout, "DEBUG: Sucessfully shutdown the connection\nExiting successfully\n");
+#endif
+
+    // Closing the socket
+    if(close(sock) < 0)
+    {
+        perror("Closing socket failure");
+        return EXIT_FAILURE;
+    }
+
+#if DEBUG
+    fprintf(stdout, "DEBUG: Sucessfully closed the socket\n");
 #endif
 
     return EXIT_SUCCESS;
